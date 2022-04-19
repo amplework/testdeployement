@@ -3,7 +3,7 @@
 image: node:11.15.0
 
 pipelines:
-   branches:master # Pipelines triggers on code push in branch
+   branches:main # Pipelines triggers on code push in branch
   #custom:     # Pipelines that can only be triggered manually
     DEV-Dev:
       - step:
