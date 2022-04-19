@@ -4,7 +4,7 @@ image: node:14.0
 
 pipelines:
   branches: # Pipelines triggers on code push in branch
-    main:
+    master:
       - step:
           name: Build
           script:
