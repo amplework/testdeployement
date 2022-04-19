@@ -1,4 +1,4 @@
-#  test Web App Auto Deployment
+#  test1 Web App Auto Deployment
 
 image: node:14.0
 
@@ -13,7 +13,7 @@ pipelines:
             # - cp .env.prod .env
             # - cp public/DEV.htaccess public/.htaccess
             - unset CI
-            - echo $ENV_PROD_BASE64 | base64 --decode --ignore-garbage > .env.production
+           # - echo $ENV_PROD_BASE64 | base64 --decode --ignore-garbage > .env.production
             - npm run build
             - mkdir packaged
             - tar -czvf packaged/package-${BITBUCKET_BUILD_NUMBER}.tar.gz -C build .
