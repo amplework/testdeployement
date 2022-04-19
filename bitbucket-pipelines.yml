@@ -1,19 +1,19 @@
-#  Test Web App Auto Deployment
+#  test Web App Auto Deployment
 
-image: node:11.15.0
+image: node:14.0
 
 pipelines:
-   branches:main # Pipelines triggers on code push in branch
-  #custom:     # Pipelines that can only be triggered manually
-    DEV-Dev:
+  branches: # Pipelines triggers on code push in branch
+    main:
       - step:
           name: Build
           script:
             - rm -rf node_modules
-            - yarn install
-            - cp .env.dev .env
-            - cp public/DEV.htaccess public/.htaccess
+            - npm install
+            # - cp .env.prod .env
+            # - cp public/DEV.htaccess public/.htaccess
             - unset CI
+            - echo $ENV_PROD_BASE64 | base64 --decode --ignore-garbage > .env.production
             - npm run build
             - mkdir packaged
             - tar -czvf packaged/package-${BITBUCKET_BUILD_NUMBER}.tar.gz -C build .
@@ -22,38 +22,6 @@ pipelines:
       - step:
           name: Deploy
           image: alpine
-          # trigger: manual
-          deployment: staging
-          script:
-            - mkdir upload
-            - tar -xf packaged/package-${BITBUCKET_BUILD_NUMBER}.tar.gz -C upload
-
-            - apk update && apk add openssh rsync
-            - ssh-keyscan -H $SERVER_ADDRESS >> ~/.ssh/known_hosts
-            - rsync -a -e "ssh -o StrictHostKeyChecking=no" --delete upload/ $SERVER_USER@$SERVER_ADDRESS:/tmp/react-${BITBUCKET_BUILD_NUMBER}
-
-            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "rm -r /var/www/html/testdeploy"
-            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "mv '/tmp/react-${BITBUCKET_BUILD_NUMBER}' '/var/www/html/testdeploy'"
-
-    # DEV Prod pipeline.
-    DEV-Prod:
-      - step:
-          name: Build
-          script:
-            - rm -rf node_modules
-            - yarn install
-            - cp .env.prod .env
-            - cp public/DEV.htaccess public/.htaccess
-            - unset CI
-            - npm run build
-            - mkdir packaged
-            - tar -czvf packaged/package-${BITBUCKET_BUILD_NUMBER}.tar.gz -C build .
-          artifacts:
-            - packaged/**
-      - step:
-          name: Deploy
-          image: alpine
-          # trigger: manual
           deployment: production
           script:
             - mkdir upload
@@ -61,8 +29,7 @@ pipelines:
 
             - apk update && apk add openssh rsync
             - ssh-keyscan -H $SERVER_ADDRESS >> ~/.ssh/known_hosts
-            - rsync -a -e "ssh -o StrictHostKeyChecking=no" --delete upload/ $SERVER_USER@$SERVER_ADDRESS:/tmp/react-${BITBUCKET_BUILD_NUMBER}
+            - rsync -a -e "ssh -o StrictHostKeyChecking=no" --delete upload/ $SERVER_USER@$SERVER_ADDRESS:/tmp/web_admin_${BITBUCKET_BUILD_NUMBER}
 
-            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "rm -r /var/www/html/AppProd/web"
-            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "mv '/tmp/react-${BITBUCKET_BUILD_NUMBER}' '/var/www/html/AppProd/web'"
-
+            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "rm -r /var/www/html/*"
+            - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_ADDRESS "mv '/tmp/web_admin_${BITBUCKET_BUILD_NUMBER}'/* '/var/www/html/testdeploy'"
